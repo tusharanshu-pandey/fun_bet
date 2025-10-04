@@ -4,6 +4,7 @@ body {
     /* Force the background to the correct dark blue-grey and remove any gradients */
     background-color: #1a202c !important; 
     background-image: none !important;
+    color: #cbd5e0; /* gray-400 */
 }
 
 .hidden {
@@ -138,14 +139,70 @@ body {
     cursor: not-allowed;
 }
 
-#history-list::-webkit-scrollbar {
+#history-list::-webkit-scrollbar,
+#leaderboard-list::-webkit-scrollbar {
     width: 6px;
 }
-#history-list::-webkit-scrollbar-track {
+#history-list::-webkit-scrollbar-track,
+#leaderboard-list::-webkit-scrollbar-track {
     background: #2d3748; /* gray-800 */
 }
-#history-list::-webkit-scrollbar-thumb {
+#history-list::-webkit-scrollbar-thumb,
+#leaderboard-list::-webkit-scrollbar-thumb {
     background-color: #4a5568; /* gray-700 */
     border-radius: 10px;
+}
+
+/* Layout for History and Leaderboard */
+.main-content {
+    display: grid;
+    grid-template-columns: 1fr; /* Default to one column */
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+@media (min-width: 768px) { /* On medium screens and up */
+    .main-content {
+        grid-template-columns: 1fr 1fr; /* Two columns */
+    }
+}
+
+/* Leaderboard Styling */
+#leaderboard-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background-color: #1a202c; /* gray-900 */
+    border-radius: 0.5rem;
+    border: 1px solid #2d3748; /* gray-800 */
+}
+
+.leaderboard-rank {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #a0aec0; /* gray-400 */
+    min-width: 30px;
+}
+
+.leaderboard-name {
+    font-weight: 500;
+    color: white;
+}
+
+.leaderboard-points {
+    font-weight: bold;
+    color: #48bb78; /* green-500 */
+}
+
+/* Special styles for top 3 */
+#leaderboard-list li:nth-child(1) .leaderboard-rank {
+    color: #FBBF24; /* Amber 400 - Gold */
+}
+#leaderboard-list li:nth-child(2) .leaderboard-rank {
+    color: #9CA3AF; /* Gray 400 - Silver */
+}
+#leaderboard-list li:nth-child(3) .leaderboard-rank {
+    color: #D97706; /* Amber 600 - Bronze */
 }
 
