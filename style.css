@@ -1,134 +1,147 @@
-/* Import Google Font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
+/* General Styling */
 body {
     font-family: 'Inter', sans-serif;
-    /* Adding a subtle gradient for depth */
-    background-image: radial-gradient(circle at top left, hsl(214, 47%, 23%) 0%, hsl(219, 41%, 12%) 50%, hsl(222, 47%, 11%) 100%);
 }
 
-/* Glassmorphism Card Effect */
-.glass-card {
-    background: rgba(30, 41, 59, 0.5); /* slate-800 with 50% opacity */
-    border-radius: 16px;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+.hidden {
+    display: none;
+}
+
+/* New Login Card Styling */
+.login-card {
+    background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 1.5rem; /* rounded-3xl */
+    padding: 2.5rem; /* p-10 */
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
-/* Custom Input Field Styling */
-.input-field {
-    background-color: rgba(15, 23, 42, 0.8); /* slate-900 with 80% opacity */
-    border: 1px solid #334155; /* slate-700 */
-    color: #e2e8f0; /* slate-200 */
-    border-radius: 8px;
+.login-input {
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
     padding: 0.75rem 1rem;
+    border-radius: 0.5rem; /* rounded-lg */
     font-size: 1rem;
     transition: all 0.2s ease-in-out;
 }
 
-.input-field::placeholder {
-    color: #64748b; /* slate-500 */
+.login-input::placeholder {
+    color: #a0aec0; /* gray-400 */
 }
 
-.input-field:focus {
+.login-input:focus {
     outline: none;
-    border-color: #38bdf8; /* sky-400 */
-    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.3);
+    box-shadow: 0 0 0 2px #60a5fa; /* ring-2 ring-blue-400 */
+    background-color: rgba(0, 0, 0, 0.3);
 }
 
-/* Custom Button Styling */
-.btn-primary {
-    background-color: #38bdf8; /* sky-400 */
-    color: #0f172a; /* slate-900 */
-    font-weight: 600;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
+.signin-btn {
+    background: linear-gradient(to right, #3b82f6, #60a5fa); /* blue-500 to blue-400 */
+    color: white;
+    font-weight: bold;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
     border: none;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
-    box-shadow: 0 2px 10px rgba(56, 189, 248, 0.2);
+    box-shadow: 0 4px 15px 0 rgba(59, 130, 246, 0.3);
 }
 
-.btn-primary:hover:not(:disabled) {
-    background-color: #7dd3fc; /* sky-300 */
+.signin-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
-}
-
-.btn-primary:disabled {
-    background-color: #334155; /* slate-700 */
-    color: #64748b; /* slate-500 */
-    cursor: not-allowed;
+    box-shadow: 0 6px 20px 0 rgba(59, 130, 246, 0.4);
 }
 
 
-/* Betting Option Button Styling */
+/* Main App Styling (from previous version, still needed) */
 .option-btn {
     width: 100%;
-    background-color: rgba(51, 65, 85, 0.7); /* slate-700 with alpha */
-    border: 2px solid transparent;
-    border-radius: 10px;
     padding: 1rem;
-    text-align: left;
+    background-color: #1f2937; /* gray-800 */
+    border-radius: 0.75rem; /* rounded-xl */
+    border: 2px solid #374151; /* gray-700 */
     cursor: pointer;
-    transition: all 0.2s ease;
-    position: relative;
-    overflow: hidden; /* For progress bar */
+    transition: all 0.2s ease-in-out;
+    text-align: left;
 }
 
 .option-btn:hover {
-    background-color: rgba(71, 85, 105, 0.9); /* slate-600 */
+    border-color: #38bdf8; /* sky-400 */
+    background-color: #374151;
 }
 
 .option-btn.selected {
-    border-color: #38bdf8; /* sky-400 */
-    background-color: rgba(56, 189, 248, 0.2);
+    border-color: #38bdf8;
+    background-color: #374151;
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
 }
 
-/* Progress Bar for Betting Pool Visualization */
+.option-text {
+    font-size: 1rem;
+    font-weight: 500;
+}
+
 .progress-bar-bg {
-    background-color: rgba(15, 23, 42, 0.5); /* slate-900 with alpha */
-    border-radius: 5px;
-    height: 8px;
-    width: 100%;
+    height: 6px;
+    background-color: #4b5563; /* gray-600 */
+    border-radius: 9999px;
     margin-top: 0.75rem;
+    overflow: hidden;
 }
 
 .progress-bar {
-    background-color: #38bdf8; /* sky-400 */
     height: 100%;
-    border-radius: 5px;
-    transition: width 0.5s ease-in-out;
+    background: linear-gradient(to right, #38bdf8, #67e8f9); /* sky-400 to cyan-300 */
+    border-radius: 9999px;
+    transition: width 0.3s ease-in-out;
 }
 
-/* Animations */
-@keyframes fade-in {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+.bet-input, .place-bet-btn {
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 1rem;
 }
 
-.animate-fade-in {
-    animation: fade-in 0.5s ease-out forwards;
+.bet-input {
+    background-color: #374151;
+    border: 1px solid #4b5563;
+    color: white;
 }
 
-/* Custom scrollbar for history */
+.bet-input:focus {
+    outline: none;
+    border-color: #38bdf8;
+}
+
+.place-bet-btn {
+    background-color: #0ea5e9; /* sky-500 */
+    color: white;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.place-bet-btn:hover {
+    background-color: #0284c7; /* sky-600 */
+}
+
+.place-bet-btn:disabled {
+    background-color: #4b5563;
+    cursor: not-allowed;
+}
+
 #history-list::-webkit-scrollbar {
-  width: 8px;
+    width: 6px;
 }
-
 #history-list::-webkit-scrollbar-track {
-  background: transparent;
+    background: #1f2937;
 }
-
 #history-list::-webkit-scrollbar-thumb {
-  background-color: #475569; /* slate-600 */
-  border-radius: 10px;
-  border: 2px solid transparent;
-  background-clip: content-box;
+    background-color: #4b5563;
+    border-radius: 10px;
 }
 
-#history-list::-webkit-scrollbar-thumb:hover {
-  background-color: #64748b; /* slate-500 */
-}
