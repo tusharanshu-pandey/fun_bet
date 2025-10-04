@@ -2,7 +2,7 @@
 body {
     font-family: 'Inter', sans-serif;
     /* Force the background to the correct dark blue-grey and remove any gradients */
-    background-color: #1f2937 !important; 
+    background-color: #1a202c !important; 
     background-image: none !important;
 }
 
@@ -12,9 +12,9 @@ body {
 
 /* New Login Card Styling */
 .login-card {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 1.5rem; /* rounded-3xl */
     padding: 2.5rem; /* p-10 */
     width: 100%;
@@ -25,7 +25,7 @@ body {
 .login-input {
     width: 100%;
     background-color: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     color: white;
     padding: 0.75rem 1rem;
     border-radius: 0.5rem; /* rounded-lg */
@@ -39,12 +39,12 @@ body {
 
 .login-input:focus {
     outline: none;
-    box-shadow: 0 0 0 2px #38bdf8; /* sky-400 */
+    box-shadow: 0 0 0 2px #48bb78; /* green-500 */
     background-color: rgba(0, 0, 0, 0.3);
 }
 
 .signin-btn {
-    background: linear-gradient(to right, #0ea5e9, #38bdf8); /* sky-500 to sky-400 */
+    background: #48bb78; /* green-500 */
     color: white;
     font-weight: bold;
     padding: 0.75rem;
@@ -52,36 +52,37 @@ body {
     border: none;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
-    box-shadow: 0 4px 15px 0 rgba(14, 165, 233, 0.3);
+    box-shadow: 0 4px 15px 0 rgba(72, 187, 120, 0.3);
 }
 
 .signin-btn:hover {
+    background: #38a169; /* green-600 */
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px 0 rgba(14, 165, 233, 0.4);
+    box-shadow: 0 6px 20px 0 rgba(72, 187, 120, 0.4);
 }
 
 
-/* Main App Styling (from previous version, still needed) */
+/* Main App Styling */
 .option-btn {
     width: 100%;
     padding: 1rem;
-    background-color: #1f2937; /* gray-800 */
+    background-color: #2d3748; /* gray-800 */
     border-radius: 0.75rem; /* rounded-xl */
-    border: 2px solid #374151; /* gray-700 */
+    border: 2px solid #4a5568; /* gray-700 */
     cursor: pointer;
     transition: all 0.2s ease-in-out;
     text-align: left;
 }
 
 .option-btn:hover {
-    border-color: #38bdf8; /* sky-400 */
-    background-color: #374151;
+    border-color: #48bb78; /* green-500 */
+    background-color: #4a5568; /* gray-700 */
 }
 
 .option-btn.selected {
-    border-color: #38bdf8;
-    background-color: #374151;
-    box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+    border-color: #48bb78; /* green-500 */
+    background-color: #4a5568; /* gray-700 */
+    box-shadow: 0 0 15px rgba(72, 187, 120, 0.3);
 }
 
 .option-text {
@@ -91,7 +92,7 @@ body {
 
 .progress-bar-bg {
     height: 6px;
-    background-color: #4b5563; /* gray-600 */
+    background-color: #4a5568; /* gray-700 */
     border-radius: 9999px;
     margin-top: 0.75rem;
     overflow: hidden;
@@ -99,7 +100,7 @@ body {
 
 .progress-bar {
     height: 100%;
-    background: linear-gradient(to right, #38bdf8, #67e8f9); /* sky-400 to cyan-300 */
+    background: linear-gradient(to right, #48bb78, #9ae6b4); /* green-500 to green-300 */
     border-radius: 9999px;
     transition: width 0.3s ease-in-out;
 }
@@ -111,29 +112,29 @@ body {
 }
 
 .bet-input {
-    background-color: #374151;
-    border: 1px solid #4b5563;
+    background-color: #4a5568; /* gray-700 */
+    border: 1px solid #718096; /* gray-600 */
     color: white;
 }
 
 .bet-input:focus {
     outline: none;
-    border-color: #38bdf8;
+    border-color: #48bb78; /* green-500 */
 }
 
 .place-bet-btn {
-    background-color: #0ea5e9; /* sky-500 */
+    background-color: #48bb78; /* green-500 */
     color: white;
     font-weight: 600;
     transition: background-color 0.2s;
 }
 
 .place-bet-btn:hover {
-    background-color: #0284c7; /* sky-600 */
+    background-color: #38a169; /* green-600 */
 }
 
 .place-bet-btn:disabled {
-    background-color: #4b5563;
+    background-color: #4a5568; /* gray-700 */
     cursor: not-allowed;
 }
 
@@ -141,10 +142,10 @@ body {
     width: 6px;
 }
 #history-list::-webkit-scrollbar-track {
-    background: #1f2937;
+    background: #2d3748; /* gray-800 */
 }
 #history-list::-webkit-scrollbar-thumb {
-    background-color: #4b5563;
+    background-color: #4a5568; /* gray-700 */
     border-radius: 10px;
 }
 
