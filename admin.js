@@ -1,7 +1,9 @@
 // --- CONFIGURATION ---
 const SUPABASE_URL = 'https://pqcijavplnmuwqcdprkc.supabase.co';
-// This key is different! It's the secret one.
-let SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxY2lqYXZwbG5tdXdxY2RwcmtjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTYwODIxNywiZXhwIjoyMDc1MTg0MjE3fQ.QOmvvhEMjBtVtdJtF9dZWRJ2f6-2BLd8lsShza9QMxs'; 
+const ADMIN_PASSWORD = 'fun@2025';
+
+// !! IMPORTANT !! This is your secret key. Do not share this file publicly or upload it to GitHub.
+const SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxY2lqYXZwbG5tdXdxY2RwcmtjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTYwODIxNywiZXhwIjoyMDc1MTg0MjE3fQ.QOmvvhEMjBtVtdJtF9dZWRJ2f6-2BLd8lsShza9QMxs'; 
 
 // --- INITIALIZATION ---
 let supabaseAdmin = null;
@@ -157,30 +159,33 @@ async function handleSetWinner(questionId, winningOption) {
 
 // --- AUTHENTICATION ---
 function handleLogin() {
-    const key = passwordInput.value.trim();
-    if (key.length < 20) {
-        alert('Invalid key format.');
-        return;
+    const enteredPassword = passwordInput.value.trim();
+    if (enteredPassword === ADMIN_PASSWORD) {
+        sessionStorage.setItem('admin-logged-in', 'true');
+        initializeAdminPanel();
+    } else {
+        alert('Incorrect password.');
+        passwordInput.value = '';
     }
-    SERVICE_ROLE_KEY = key;
-    sessionStorage.setItem('supabase-service-key', key);
-    initializeAdminPanel();
 }
 
 function handleLogoutAdmin() {
-    sessionStorage.removeItem('supabase-service-key');
-    SERVICE_ROLE_KEY = '';
+    sessionStorage.removeItem('admin-logged-in');
+    supabaseAdmin = null; // Clear the admin client
     adminContent.classList.add('hidden');
     passwordOverlay.classList.remove('hidden');
 }
 
 function initializeAdminPanel() {
+    // Check if client is already initialized
+    if (supabaseAdmin) return; 
+
     try {
         supabaseAdmin = window.supabase.createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
         // Test query to verify key
         supabaseAdmin.from('questions').select('id', { count: 'exact', head: true }).then(({ error }) => {
             if (error) {
-                alert('Login Failed: Invalid Service Role Key.');
+                alert('Login Failed: The hardcoded Service Role Key is invalid.');
                 handleLogoutAdmin();
             } else {
                 console.log("Admin client initialized successfully.");
@@ -214,9 +219,9 @@ activeQuestionsContainer.addEventListener('click', (e) => {
 });
 
 
-// On page load, check for a saved key
-const savedKey = sessionStorage.getItem('supabase-service-key');
-if (savedKey) {
-    passwordInput.value = savedKey;
-    handleLogin();
+// On page load, check for a saved login session
+const isLoggedIn = sessionStorage.getItem('admin-logged-in');
+if (isLoggedIn === 'true') {
+    initializeAdminPanel();
 }
+
