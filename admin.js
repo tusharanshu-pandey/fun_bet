@@ -1,6 +1,6 @@
 // --- CONFIGURATION ---
 const SUPABASE_URL = 'https://pqcijavplnmuwqcdprkc.supabase.co';
-const ADMIN_PASSWORD = 'fun@2025';
+const ADMIN_PASSWORD = '';
 
 // !! IMPORTANT !! This is your secret key. Do not share this file publicly or upload it to GitHub.
 const SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxY2lqYXZwbG5tdXdxY2RwcmtjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTYwODIxNywiZXhwIjoyMDc1MTg0MjE3fQ.QOmvvhEMjBtVtdJtF9dZWRJ2f6-2BLd8lsShza9QMxs'; 
