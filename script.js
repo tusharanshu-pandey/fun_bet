@@ -1,315 +1,342 @@
-// --- CONFIGURATION ---
+// --- SUPABASE SETUP ---
 const SUPABASE_URL = 'https://pqcijavplnmuwqcdprkc.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxY2lqYXZwbG5tdXdxY2RwcmtjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2MDgyMTcsImV4cCI6MjA3NTE4NDIxN30.MlsXtlTpmjVLzLDN8xHKJ6AqXrkrjUPpJ97sCnty504';
-
-// --- INITIALIZATION ---
-let supabase = null;
-try {
-    console.log("Script started. Initializing Supabase client...");
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    console.log("Supabase client initialized successfully.");
-} catch (error) {
-    console.error("CRITICAL ERROR: Failed to initialize Supabase. Check your URL and Key.");
-    console.error("Error details:", error.message);
-}
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // --- DOM ELEMENTS ---
-const loginSection = document.getElementById('login-section');
-const nameInput = document.getElementById('name-input');
-const passwordInput = document.getElementById('password-input-user');
+const loginView = document.getElementById('login-view');
+const appView = document.getElementById('app-view');
+const nameInput = document.getElementById('name');
+const passwordInput = document.getElementById('password');
 const signinBtn = document.getElementById('signin-btn');
-const loginMessageArea = document.getElementById('login-message-area');
-
-const appSection = document.getElementById('app-section');
-const playerNameSpan = document.getElementById('player-name');
-const playerPointsSpan = document.getElementById('player-points');
-const logoutBtn = document.getElementById('logout-btn');
+const loginError = document.getElementById('login-error');
+const playerNameDisplay = document.getElementById('player-name');
+const playerPointsDisplay = document.getElementById('player-points');
 const questionText = document.getElementById('question-text');
 const optionsContainer = document.getElementById('options-container');
 const betAmountInput = document.getElementById('bet-amount');
 const placeBetBtn = document.getElementById('place-bet-btn');
-const messageArea = document.getElementById('message-area');
+const betError = document.getElementById('bet-error');
 const historyList = document.getElementById('history-list');
+const leaderboardList = document.getElementById('leaderboard-list');
 
-// --- APPLICATION STATE ---
+// --- APP STATE ---
 let currentPlayer = null;
-let currentQuestion = null;
-let allBets = [];
+let activeQuestion = null;
 let selectedOption = null;
-const INITIAL_POINTS = 1000;
 
-// --- UI FUNCTIONS ---
-function toggleAppView(showApp) {
-    if (showApp) {
-        loginSection.style.display = 'none';
-        appSection.classList.remove('hidden');
+// --- FUNCTIONS ---
+
+// Function to handle both Login and Registration
+async function handleSignIn() {
+    const name = nameInput.value.trim();
+    const password = passwordInput.value.trim();
+    loginError.textContent = '';
+
+    if (!name || !password) {
+        loginError.textContent = 'Name and password cannot be empty.';
+        return;
+    }
+
+    // 1. Check if player exists
+    const { data: existingPlayer, error: fetchError } = await supabase
+        .from('players')
+        .select('*')
+        .eq('name', name)
+        .single();
+
+    if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 means no rows found, which is ok
+        loginError.textContent = 'Error checking player data.';
+        console.error('Fetch error:', fetchError);
+        return;
+    }
+
+    if (existingPlayer) {
+        // 2. Player exists, so check password (Login)
+        if (existingPlayer.password === password) {
+            currentPlayer = existingPlayer;
+            localStorage.setItem('betting_app_player', JSON.stringify(currentPlayer));
+            showAppView(currentPlayer);
+        } else {
+            loginError.textContent = 'Incorrect password.';
+        }
     } else {
-        loginSection.style.display = 'block';
-        appSection.classList.add('hidden');
+        // 3. Player does not exist, create a new one (Register)
+        const { data: newPlayer, error: insertError } = await supabase
+            .from('players')
+            .insert({ name, password, points: 1000 })
+            .select()
+            .single();
+        
+        if (insertError) {
+            loginError.textContent = 'Could not create account.';
+            console.error('Insert error:', insertError);
+        } else {
+            currentPlayer = newPlayer;
+            localStorage.setItem('betting_app_player', JSON.stringify(currentPlayer));
+            showAppView(currentPlayer);
+        }
     }
 }
 
-function updatePlayerInfo() {
-    if (currentPlayer) {
-        playerNameSpan.textContent = currentPlayer.name;
-        playerPointsSpan.textContent = currentPlayer.points;
-    }
+// Show main app view and hide login
+function showAppView(user) {
+    playerNameDisplay.textContent = user.name;
+    playerPointsDisplay.textContent = user.points;
+    loginView.classList.add('hidden');
+    appView.classList.remove('hidden');
+
+    fetchActiveQuestion();
+    renderHistory();
+    renderLeaderboard();
+
+    // Set up real-time subscriptions
+    subscribeToBets();
+    subscribeToPlayers();
 }
 
-function showMessage(text, isError = false, area = messageArea) {
-    area.textContent = text;
-    area.style.color = isError ? '#f87171' : '#38bdf8';
-    setTimeout(() => area.textContent = '', 4000);
-}
-
-function renderQuestionAndOptions() {
-    if (!currentQuestion) {
-        questionText.textContent = 'No active question at the moment. Please check back later!';
+// Fetch the current active question from the database
+async function fetchActiveQuestion() {
+    const { data, error } = await supabase
+        .from('questions')
+        .select('*')
+        .eq('is_active', true)
+        .single();
+    
+    if (error || !data) {
+        questionText.textContent = 'No active question at the moment. Check back later!';
         optionsContainer.innerHTML = '';
-        placeBetBtn.disabled = true;
-        betAmountInput.disabled = true;
-        return;
+        document.getElementById('betting-controls').classList.add('hidden');
+    } else {
+        activeQuestion = data;
+        renderQuestion();
     }
-    if (currentQuestion.correct_answer) {
-        placeBetBtn.disabled = true;
-        betAmountInput.disabled = true;
-        questionText.textContent = `(Closed) ${currentQuestion.question_text}`;
-        optionsContainer.innerHTML = `<div class="text-center text-sky-400 font-bold">The winning answer was: ${currentQuestion.correct_answer}</div>`;
-        return;
-    }
-    placeBetBtn.disabled = false;
-    betAmountInput.disabled = false;
-    questionText.textContent = currentQuestion.question_text;
-    optionsContainer.innerHTML = ''; 
+}
 
-    const pointsPerOption = currentQuestion.options.reduce((acc, option) => ({ ...acc, [option]: 0 }), {});
+// Display the question and betting options
+async function renderQuestion() {
+    questionText.textContent = activeQuestion.question_text;
+    optionsContainer.innerHTML = ''; // Clear previous options
+
+    // Get total points bet on each option to calculate odds
+    const { data: bets, error } = await supabase
+        .from('bets')
+        .select('option, amount')
+        .eq('question_id', activeQuestion.id);
+
+    if (error) {
+        console.error("Couldn't fetch bets for odds calculation", error);
+        return;
+    }
+
+    const pointsPerOption = activeQuestion.options.reduce((acc, option) => {
+        acc[option] = 0;
+        return acc;
+    }, {});
+    
     let totalPot = 0;
-    allBets.forEach(bet => {
-        if (bet.question_id === currentQuestion.id && pointsPerOption.hasOwnProperty(bet.option)) {
+    bets.forEach(bet => {
+        if (pointsPerOption.hasOwnProperty(bet.option)) {
             pointsPerOption[bet.option] += bet.amount;
             totalPot += bet.amount;
         }
     });
 
-    currentQuestion.options.forEach(optionText => {
-        const pointsOnThisOption = pointsPerOption[optionText];
-        const odds = totalPot > 0 && pointsOnThisOption > 0 ? (totalPot / pointsOnThisOption).toFixed(2) : '—';
-        const percentage = totalPot > 0 ? (pointsOnThisOption / totalPot) * 100 : 0;
+    // Create and display option buttons
+    activeQuestion.options.forEach(option => {
+        const optionPoints = pointsPerOption[option];
+        const percentage = totalPot > 0 ? ((optionPoints / totalPot) * 100).toFixed(0) : 0;
 
         const button = document.createElement('button');
         button.className = 'option-btn';
-        button.dataset.option = optionText;
         button.innerHTML = `
-            <div class="flex justify-between items-center w-full">
-                <span class="option-text">${optionText}</span>
-                <span class="option-odds font-semibold bg-gray-700 px-2 py-1 rounded-md text-sm">${odds}x</span>
+            <div class="flex justify-between items-center">
+                <span class="option-text">${option}</span>
+                <span class="text-gray-400 font-semibold">${percentage}%</span>
             </div>
             <div class="progress-bar-bg">
-                <div class="progress-bar" style="width: ${percentage}%;"></div>
+                <div class="progress-bar" style="width: ${percentage}%"></div>
             </div>
         `;
-        button.onclick = () => handleOptionSelect(button, optionText);
+        button.onclick = () => selectOption(button, option);
         optionsContainer.appendChild(button);
     });
-    
-    if (selectedOption) {
-        const btn = optionsContainer.querySelector(`[data-option="${selectedOption}"]`);
-        if(btn) btn.classList.add('selected');
-    }
 }
 
+
+// Handle option selection
+function selectOption(button, option) {
+    document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
+    button.classList.add('selected');
+    selectedOption = option;
+    placeBetBtn.disabled = false;
+}
+
+// Handle placing a bet
+async function placeBet() {
+    const amount = parseInt(betAmountInput.value);
+    betError.textContent = '';
+
+    if (!selectedOption) {
+        betError.textContent = 'Please select an option first.';
+        return;
+    }
+    if (isNaN(amount) || amount <= 0) {
+        betError.textContent = 'Please enter a valid bet amount.';
+        return;
+    }
+    if (amount > currentPlayer.points) {
+        betError.textContent = "You don't have enough points.";
+        return;
+    }
+
+    // 1. Deduct points from player
+    const newPoints = currentPlayer.points - amount;
+    const { error: updateError } = await supabase
+        .from('players')
+        .update({ points: newPoints })
+        .eq('name', currentPlayer.name);
+
+    if (updateError) {
+        betError.textContent = 'Failed to update points.';
+        console.error(updateError);
+        return;
+    }
+
+    // 2. Record the bet in the 'bets' table
+    const { error: insertError } = await supabase
+        .from('bets')
+        .insert({
+            question_id: activeQuestion.id,
+            player_name: currentPlayer.name,
+            option: selectedOption,
+            amount: amount
+        });
+
+    if (insertError) {
+        betError.textContent = 'Failed to place bet.';
+        // Attempt to refund points if bet placement fails
+        await supabase.from('players').update({ points: currentPlayer.points }).eq('name', currentPlayer.name);
+        console.error(insertError);
+        return;
+    }
+
+    // 3. Update local state and UI
+    currentPlayer.points = newPoints;
+    localStorage.setItem('betting_app_player', JSON.stringify(currentPlayer));
+    playerPointsDisplay.textContent = newPoints;
+    betAmountInput.value = '';
+    document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
+    selectedOption = null;
+    placeBetBtn.disabled = true;
+
+    // Refresh question to show updated odds
+    renderQuestion();
+}
+
+
+// Fetch and display the current player's bet history for the active question
 async function renderHistory() {
-    if (!currentPlayer || !supabase || !currentQuestion) return;
-    const { data: userBets, error } = await supabase
+    if (!activeQuestion) return;
+
+    const { data, error } = await supabase
         .from('bets')
         .select('*')
         .eq('player_name', currentPlayer.name)
-        .eq('question_id', currentQuestion.id)
-        .order('created_at', { ascending: false });
+        .eq('question_id', activeQuestion.id);
+    
+    if (error) return;
+
+    historyList.innerHTML = '';
+    if (data.length === 0) {
+        historyList.innerHTML = '<p class="text-gray-500 text-center">You have not placed any bets on this question.</p>';
+    } else {
+        data.forEach(bet => {
+            const li = document.createElement('li');
+            li.className = 'flex justify-between items-center text-sm p-3 bg-gray-900 rounded-lg';
+            li.innerHTML = `
+                <span>Bet on: <span class="font-semibold text-white">${bet.option}</span></span>
+                <span class="font-bold text-lg">${bet.amount} pts</span>
+            `;
+            historyList.appendChild(li);
+        });
+    }
+}
+
+async function renderLeaderboard() {
+    if (!leaderboardList) return;
+
+    const { data: players, error } = await supabase
+        .from('players')
+        .select('*')
+        .order('points', { ascending: false })
+        .limit(10);
 
     if (error) {
-        console.error('Error fetching history:', error);
+        console.error('Error fetching leaderboard:', error);
+        leaderboardList.innerHTML = '<li>Could not load leaderboard.</li>';
         return;
     }
 
-    if (userBets.length === 0) {
-        historyList.innerHTML = '<p class="text-gray-400 text-center">No bets placed on this question yet.</p>';
-    } else {
-        historyList.innerHTML = userBets.map(bet => `
-            <div class="text-sm flex justify-between">
-                <span>Bet ${bet.amount} on "${bet.option}"</span>
-                <span class="text-gray-400">${new Date(bet.created_at).toLocaleTimeString()}</span>
-            </div>
-        `).join('');
-    }
-}
-
-
-// --- DATA FETCHING & BACKEND ---
-async function fetchActiveQuestion() {
-    if (!supabase) return;
-    const { data, error } = await supabase.from('questions').select('*').eq('is_active', true).order('created_at', { ascending: false }).limit(1).single();
-    if (error) console.error('Error fetching question:', error.message);
-    else currentQuestion = data;
-}
-
-async function fetchAllBets() {
-    if (!currentQuestion || !supabase) return;
-    const { data, error } = await supabase.from('bets').select('*').eq('question_id', currentQuestion.id);
-    if (error) console.error('Error fetching bets:', error);
-    else allBets = data;
-}
-
-function subscribeToBetChanges() {
-    if (!supabase) return;
-    supabase.channel('public:bets').on('postgres_changes', { event: '*', schema: 'public', table: 'bets' }, () => fetchAllBets().then(renderQuestionAndOptions)).subscribe();
-}
-
-function subscribeToPlayerChanges() {
-    if (!supabase || !currentPlayer) return;
-    supabase.channel(`public:players:name=eq.${currentPlayer.name}`).on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'players', filter: `name=eq.${currentPlayer.name}` }, payload => {
-        currentPlayer.points = payload.new.points;
-        updatePlayerInfo();
-        showMessage('Your points have been updated!');
-    }).subscribe();
-}
-
-// --- NEW COMBINED AUTHENTICATION LOGIC ---
-
-async function handleLoginOrRegister() {
-    const name = nameInput.value.trim();
-    const password = passwordInput.value.trim();
-    if (name.length < 3 || password.length < 4) {
-        return showMessage('Name must be 3+ chars, password 4+ chars.', true, loginMessageArea);
-    }
-    signinBtn.disabled = true;
-    signinBtn.textContent = 'Processing...';
-
-    // 1. Check if player exists
-    let { data: player, error } = await supabase.from('players').select('*').eq('name', name).single();
-
-    if (player) { // Player exists, try to log in
-        if (player.password === password) {
-            currentPlayer = player;
-            localStorage.setItem('betting-app-player-name', currentPlayer.name);
-            initializeMainApp();
-        } else {
-            showMessage('Incorrect password.', true, loginMessageArea);
-        }
-    } else if (error && error.code === 'PGRST116') { // Player does not exist (PGRST116: "Not a single row"), so register them
-        const { data: newPlayer, error: insertError } = await supabase
-            .from('players')
-            .insert({ name, password, points: INITIAL_POINTS })
-            .select()
-            .single();
-
-        if (insertError) {
-            console.error("Registration error:", insertError);
-            showMessage('Could not create account.', true, loginMessageArea);
-        } else {
-            currentPlayer = newPlayer;
-            localStorage.setItem('betting-app-player-name', currentPlayer.name);
-            initializeMainApp();
-        }
-    } else if (error) { // Some other database error occurred
-        console.error("Login error:", error);
-        showMessage('An error occurred. Please try again.', true, loginMessageArea);
-    }
-    
-    signinBtn.disabled = false;
-    signinBtn.textContent = 'Sign In / Register';
-}
-
-function handleLogout() {
-    localStorage.removeItem('betting-app-player-name');
-    currentPlayer = null;
-    window.location.reload();
-}
-
-// --- EVENT HANDLERS ---
-function handleOptionSelect(selectedButton, optionText) {
-    if (currentQuestion.correct_answer) return;
-    document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
-    selectedButton.classList.add('selected');
-    selectedOption = optionText;
-}
-
-async function handlePlaceBet() {
-    if (!supabase) return showMessage('Database connection error.', true);
-    const amount = parseInt(betAmountInput.value);
-
-    if (!selectedOption) return showMessage('Please select an option first.', true);
-    if (isNaN(amount) || amount <= 0) return showMessage('Please enter a valid bet amount.', true);
-    if (amount > currentPlayer.points) return showMessage("You don't have enough points for that bet.", true);
-
-    placeBetBtn.disabled = true;
-    placeBetBtn.textContent = 'Placing...';
-    
-    const newPoints = currentPlayer.points - amount;
-    const { error: updateError } = await supabase.from('players').update({ points: newPoints }).eq('name', currentPlayer.name);
-
-    if (updateError) {
-        showMessage('Error updating points. Bet not placed.', true);
-        placeBetBtn.disabled = false;
-        placeBetBtn.textContent = 'Place Bet';
+    if (players.length === 0) {
+        leaderboardList.innerHTML = '<li>No players yet.</li>';
         return;
     }
-    
-    const { error: insertError } = await supabase.from('bets').insert({ question_id: currentQuestion.id, player_name: currentPlayer.name, option: selectedOption, amount: amount });
 
-    if (insertError) {
-        await supabase.from('players').update({ points: currentPlayer.points }).eq('name', currentPlayer.name);
-        showMessage('Failed to place bet. Your points have been refunded.', true);
-    } else {
-        currentPlayer.points = newPoints;
-        updatePlayerInfo();
-        showMessage(`Bet of ${amount} placed on "${selectedOption}"!`);
-        betAmountInput.value = '';
-        renderHistory();
-    }
-    
-    placeBetBtn.disabled = false;
-    placeBetBtn.textContent = 'Place Bet';
+    leaderboardList.innerHTML = ''; // Clear existing list
+    players.forEach((player, index) => {
+        const rank = index + 1;
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <span class="leaderboard-rank">#${rank}</span>
+            <span class="leaderboard-name">${player.name}</span>
+            <span class="leaderboard-points">${player.points} pts</span>
+        `;
+        leaderboardList.appendChild(li);
+    });
 }
 
-// --- INITIALIZATION LOGIC ---
-async function initializeMainApp() {
-    toggleAppView(true);
-    updatePlayerInfo();
-    await fetchActiveQuestion();
-    await fetchAllBets();
-    renderQuestionAndOptions();
-    renderHistory();
-    subscribeToBetChanges();
-    subscribeToPlayerChanges();
+// Set up a real-time subscription to the 'bets' table
+function subscribeToBets() {
+    supabase
+        .channel('public:bets')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bets' }, payload => {
+            if (payload.new.question_id === activeQuestion.id) {
+                // If the new bet is for the current question, re-render question for odds and history
+                renderQuestion();
+                renderHistory();
+            }
+        })
+        .subscribe();
 }
 
-async function checkForSavedPlayer() {
-    const savedPlayerName = localStorage.getItem('betting-app-player-name');
-    if (savedPlayerName && supabase) {
-        let { data: player } = await supabase.from('players').select('*').eq('name', savedPlayerName).single();
-        if (player) {
-            currentPlayer = player;
-            initializeMainApp();
-        } else {
-            localStorage.removeItem('betting-app-player-name');
-            toggleAppView(false);
-        }
-    } else {
-        toggleAppView(false);
-    }
+function subscribeToPlayers() {
+    supabase
+        .channel('public:players')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'players' }, payload => {
+            console.log('Player data changed, refreshing leaderboard...');
+            // Check if the change affects the current player
+            if (currentPlayer && payload.new.name === currentPlayer.name) {
+                currentPlayer.points = payload.new.points;
+                playerPointsDisplay.textContent = currentPlayer.points;
+                localStorage.setItem('betting_app_player', JSON.stringify(currentPlayer));
+            }
+            renderLeaderboard();
+        })
+        .subscribe();
 }
 
-// --- START THE APP ---
+// --- EVENT LISTENERS & INITIALIZATION ---
+
+// Check for a logged-in user on page load
 document.addEventListener('DOMContentLoaded', () => {
-    if (supabase) {
-        signinBtn.addEventListener('click', handleLoginOrRegister);
-        logoutBtn.addEventListener('click', handleLogout);
-        placeBetBtn.addEventListener('click', handlePlaceBet);
-        passwordInput.addEventListener('keyup', (event) => {
-            if (event.key === 'Enter') handleLoginOrRegister();
-        });
-        checkForSavedPlayer();
+    const savedPlayer = localStorage.getItem('betting_app_player');
+    if (savedPlayer) {
+        currentPlayer = JSON.parse(savedPlayer);
+        showAppView(currentPlayer);
     }
 });
+
+signinBtn.addEventListener('click', handleSignIn);
+placeBetBtn.addEventListener('click', placeBet);
 
