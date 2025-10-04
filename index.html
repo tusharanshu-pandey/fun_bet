@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Odds Betting</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS for rapid UI development -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-2xl mx-auto">
+
+        <!-- Login Section - Initially Visible -->
+        <section id="login-section" class="glass-card text-center p-8">
+            <h1 class="text-4xl font-bold mb-2">Welcome to Live Odds</h1>
+            <p class="text-gray-300 mb-6">Enter your name to start betting.</p>
+            <div class="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+                <input type="text" id="name-input" placeholder="Enter your name..." class="flex-grow input-field">
+                <button id="start-btn" class="btn-primary">Join Game</button>
+            </div>
+        </section>
+
+        <!-- Main App Section - Initially Hidden -->
+        <main id="app-section" class="hidden animate-fade-in">
+            <!-- Header with Player Info -->
+            <header class="flex justify-between items-center mb-6 px-2">
+                <div>
+                    <h1 class="text-2xl font-bold">Live Odds</h1>
+                    <p class="text-sm text-sky-300">Player: <span id="player-name" class="font-semibold"></span></p>
+                </div>
+                <div class="text-right">
+                    <p class="text-lg font-semibold"><span id="player-points"></span> Points</p>
+                    <button id="logout-btn" class="text-xs text-gray-400 hover:text-red-500 transition-colors">Logout</button>
+                </div>
+            </header>
+
+            <!-- Question & Betting Card -->
+            <div class="glass-card p-6 sm:p-8">
+                <!-- Current Question -->
+                <div id="question-container" class="mb-6">
+                    <p class="text-gray-400 text-sm mb-2">Current Question</p>
+                    <h2 id="question-text" class="text-xl sm:text-2xl font-semibold leading-tight">
+                        Loading question...
+                    </h2>
+                </div>
+
+                <!-- Betting Options -->
+                <div id="options-container" class="space-y-4 mb-6">
+                    <!-- Options will be dynamically inserted here by JavaScript -->
+                </div>
+
+                <!-- Betting Controls -->
+                <div id="betting-controls" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+                    <input type="number" id="bet-amount" placeholder="Points to bet" class="input-field sm:col-span-2">
+                    <button id="place-bet-btn" class="btn-primary">Place Bet</button>
+                </div>
+                <div id="message-area" class="text-center text-sm mt-4 min-h-[20px]"></div>
+            </div>
+
+            <!-- Bet History -->
+            <div id="history-container" class="mt-6">
+                 <h3 class="text-lg font-semibold px-2 mb-2">Your Bet History</h3>
+                 <div id="history-list" class="glass-card p-4 sm:p-6 space-y-3 max-h-60 overflow-y-auto">
+                     <p class="text-gray-400 text-center">No bets placed yet.</p>
+                 </div>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Supabase Client Library - IMPORTANT! -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- The Brains of the Operation -->
+    <script src="script.js"></script>
+</body>
+</html>
+
