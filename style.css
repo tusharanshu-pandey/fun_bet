@@ -1,0 +1,134 @@
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+    /* Adding a subtle gradient for depth */
+    background-image: radial-gradient(circle at top left, hsl(214, 47%, 23%) 0%, hsl(219, 41%, 12%) 50%, hsl(222, 47%, 11%) 100%);
+}
+
+/* Glassmorphism Card Effect */
+.glass-card {
+    background: rgba(30, 41, 59, 0.5); /* slate-800 with 50% opacity */
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Custom Input Field Styling */
+.input-field {
+    background-color: rgba(15, 23, 42, 0.8); /* slate-900 with 80% opacity */
+    border: 1px solid #334155; /* slate-700 */
+    color: #e2e8f0; /* slate-200 */
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.input-field::placeholder {
+    color: #64748b; /* slate-500 */
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: #38bdf8; /* sky-400 */
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.3);
+}
+
+/* Custom Button Styling */
+.btn-primary {
+    background-color: #38bdf8; /* sky-400 */
+    color: #0f172a; /* slate-900 */
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 2px 10px rgba(56, 189, 248, 0.2);
+}
+
+.btn-primary:hover:not(:disabled) {
+    background-color: #7dd3fc; /* sky-300 */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+}
+
+.btn-primary:disabled {
+    background-color: #334155; /* slate-700 */
+    color: #64748b; /* slate-500 */
+    cursor: not-allowed;
+}
+
+
+/* Betting Option Button Styling */
+.option-btn {
+    width: 100%;
+    background-color: rgba(51, 65, 85, 0.7); /* slate-700 with alpha */
+    border: 2px solid transparent;
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden; /* For progress bar */
+}
+
+.option-btn:hover {
+    background-color: rgba(71, 85, 105, 0.9); /* slate-600 */
+}
+
+.option-btn.selected {
+    border-color: #38bdf8; /* sky-400 */
+    background-color: rgba(56, 189, 248, 0.2);
+}
+
+/* Progress Bar for Betting Pool Visualization */
+.progress-bar-bg {
+    background-color: rgba(15, 23, 42, 0.5); /* slate-900 with alpha */
+    border-radius: 5px;
+    height: 8px;
+    width: 100%;
+    margin-top: 0.75rem;
+}
+
+.progress-bar {
+    background-color: #38bdf8; /* sky-400 */
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.5s ease-in-out;
+}
+
+/* Animations */
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+    animation: fade-in 0.5s ease-out forwards;
+}
+
+/* Custom scrollbar for history */
+#history-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+#history-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#history-list::-webkit-scrollbar-thumb {
+  background-color: #475569; /* slate-600 */
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+#history-list::-webkit-scrollbar-thumb:hover {
+  background-color: #64748b; /* slate-500 */
+}
