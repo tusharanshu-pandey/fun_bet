@@ -17,8 +17,7 @@ try {
 const loginSection = document.getElementById('login-section');
 const nameInput = document.getElementById('name-input');
 const passwordInput = document.getElementById('password-input-user');
-const loginBtn = document.getElementById('login-btn');
-const registerBtn = document.getElementById('register-btn');
+const signinBtn = document.getElementById('signin-btn');
 const loginMessageArea = document.getElementById('login-message-area');
 
 const appSection = document.getElementById('app-section');
@@ -41,8 +40,13 @@ const INITIAL_POINTS = 1000;
 
 // --- UI FUNCTIONS ---
 function toggleAppView(showApp) {
-    loginSection.classList.toggle('hidden', showApp);
-    appSection.classList.toggle('hidden', !showApp);
+    if (showApp) {
+        loginSection.style.display = 'none';
+        appSection.classList.remove('hidden');
+    } else {
+        loginSection.style.display = 'block';
+        appSection.classList.add('hidden');
+    }
 }
 
 function updatePlayerInfo() {
@@ -55,7 +59,7 @@ function updatePlayerInfo() {
 function showMessage(text, isError = false, area = messageArea) {
     area.textContent = text;
     area.style.color = isError ? '#f87171' : '#38bdf8';
-    setTimeout(() => area.textContent = '', 3000);
+    setTimeout(() => area.textContent = '', 4000);
 }
 
 function renderQuestionAndOptions() {
@@ -73,7 +77,6 @@ function renderQuestionAndOptions() {
         optionsContainer.innerHTML = `<div class="text-center text-sky-400 font-bold">The winning answer was: ${currentQuestion.correct_answer}</div>`;
         return;
     }
-    // ... (rest of the function is the same, no changes needed)
     placeBetBtn.disabled = false;
     betAmountInput.disabled = false;
     questionText.textContent = currentQuestion.question_text;
@@ -116,9 +119,7 @@ function renderQuestionAndOptions() {
 }
 
 async function renderHistory() {
-    // ... (This function is the same, no changes needed)
     if (!currentPlayer || !supabase || !currentQuestion) return;
-
     const { data: userBets, error } = await supabase
         .from('bets')
         .select('*')
@@ -133,143 +134,90 @@ async function renderHistory() {
 
     if (userBets.length === 0) {
         historyList.innerHTML = '<p class="text-gray-400 text-center">No bets placed on this question yet.</p>';
-        return;
+    } else {
+        historyList.innerHTML = userBets.map(bet => `
+            <div class="text-sm flex justify-between">
+                <span>Bet ${bet.amount} on "${bet.option}"</span>
+                <span class="text-gray-400">${new Date(bet.created_at).toLocaleTimeString()}</span>
+            </div>
+        `).join('');
     }
-
-    historyList.innerHTML = userBets.map(bet => `
-        <div class="text-sm flex justify-between">
-            <span>Bet ${bet.amount} on "${bet.option}"</span>
-            <span class="text-gray-400">${new Date(bet.created_at).toLocaleTimeString()}</span>
-        </div>
-    `).join('');
 }
 
 
 // --- DATA FETCHING & BACKEND ---
 async function fetchActiveQuestion() {
-    // ... (This function is the same, no changes needed)
     if (!supabase) return;
-    const { data, error } = await supabase
-        .from('questions')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-    
-    if (error) {
-        console.error('Error fetching question:', error.message);
-    } else {
-        currentQuestion = data;
-    }
+    const { data, error } = await supabase.from('questions').select('*').eq('is_active', true).order('created_at', { ascending: false }).limit(1).single();
+    if (error) console.error('Error fetching question:', error.message);
+    else currentQuestion = data;
 }
 
 async function fetchAllBets() {
-    // ... (This function is the same, no changes needed)
     if (!currentQuestion || !supabase) return;
-     const { data, error } = await supabase
-        .from('bets')
-        .select('*')
-        .eq('question_id', currentQuestion.id);
-
-    if (error) {
-        console.error('Error fetching bets:', error);
-    } else {
-        allBets = data;
-    }
+    const { data, error } = await supabase.from('bets').select('*').eq('question_id', currentQuestion.id);
+    if (error) console.error('Error fetching bets:', error);
+    else allBets = data;
 }
 
 function subscribeToBetChanges() {
-    // ... (This function is the same, no changes needed)
     if (!supabase) return;
-    supabase
-        .channel('public:bets')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'bets' }, payload => {
-            console.log('Bet change received!', payload);
-            fetchAllBets().then(renderQuestionAndOptions);
-        })
-        .subscribe();
+    supabase.channel('public:bets').on('postgres_changes', { event: '*', schema: 'public', table: 'bets' }, () => fetchAllBets().then(renderQuestionAndOptions)).subscribe();
 }
 
 function subscribeToPlayerChanges() {
-    // ... (This function is the same, no changes needed)
     if (!supabase || !currentPlayer) return;
-    supabase
-        .channel(`public:players:name=eq.${currentPlayer.name}`)
-        .on('postgres_changes', {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'players',
-            filter: `name=eq.${currentPlayer.name}`
-        }, payload => {
-            console.log('Player points updated!', payload);
-            currentPlayer.points = payload.new.points;
-            updatePlayerInfo();
-            showMessage('Your points have been updated!');
-        })
-        .subscribe();
+    supabase.channel(`public:players:name=eq.${currentPlayer.name}`).on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'players', filter: `name=eq.${currentPlayer.name}` }, payload => {
+        currentPlayer.points = payload.new.points;
+        updatePlayerInfo();
+        showMessage('Your points have been updated!');
+    }).subscribe();
 }
 
-// --- NEW AUTHENTICATION LOGIC ---
+// --- NEW COMBINED AUTHENTICATION LOGIC ---
 
-async function handleLogin() {
-    const name = nameInput.value.trim();
-    const password = passwordInput.value.trim();
-    if (!name || !password) return showMessage('Name and password are required.', true, loginMessageArea);
-
-    let { data: player, error } = await supabase
-        .from('players')
-        .select('*')
-        .eq('name', name)
-        .single();
-
-    if (error || !player) {
-        return showMessage('Player not found. Please register.', true, loginMessageArea);
-    }
-
-    if (player.password === password) {
-        currentPlayer = player;
-        localStorage.setItem('betting-app-player-name', currentPlayer.name);
-        initializeMainApp();
-    } else {
-        return showMessage('Incorrect password.', true, loginMessageArea);
-    }
-}
-
-async function handleRegister() {
+async function handleLoginOrRegister() {
     const name = nameInput.value.trim();
     const password = passwordInput.value.trim();
     if (name.length < 3 || password.length < 4) {
         return showMessage('Name must be 3+ chars, password 4+ chars.', true, loginMessageArea);
     }
+    signinBtn.disabled = true;
+    signinBtn.textContent = 'Processing...';
 
-    // Check if player name is already taken
-    let { data: existingPlayer, error: selectError } = await supabase
-        .from('players')
-        .select('name')
-        .eq('name', name)
-        .single();
+    // 1. Check if player exists
+    let { data: player, error } = await supabase.from('players').select('*').eq('name', name).single();
 
-    if (existingPlayer) {
-        return showMessage('This name is already taken.', true, loginMessageArea);
+    if (player) { // Player exists, try to log in
+        if (player.password === password) {
+            currentPlayer = player;
+            localStorage.setItem('betting-app-player-name', currentPlayer.name);
+            initializeMainApp();
+        } else {
+            showMessage('Incorrect password.', true, loginMessageArea);
+        }
+    } else if (error && error.code === 'PGRST116') { // Player does not exist (PGRST116: "Not a single row"), so register them
+        const { data: newPlayer, error: insertError } = await supabase
+            .from('players')
+            .insert({ name, password, points: INITIAL_POINTS })
+            .select()
+            .single();
+
+        if (insertError) {
+            console.error("Registration error:", insertError);
+            showMessage('Could not create account.', true, loginMessageArea);
+        } else {
+            currentPlayer = newPlayer;
+            localStorage.setItem('betting-app-player-name', currentPlayer.name);
+            initializeMainApp();
+        }
+    } else if (error) { // Some other database error occurred
+        console.error("Login error:", error);
+        showMessage('An error occurred. Please try again.', true, loginMessageArea);
     }
-
-    // Create new player
-    const { data: newPlayer, error: insertError } = await supabase
-        .from('players')
-        .insert({ name, password, points: INITIAL_POINTS })
-        .select()
-        .single();
-
-    if (insertError) {
-        console.error("Registration error:", insertError);
-        return showMessage('Could not create account.', true, loginMessageArea);
-    }
-
-    // Automatically log them in
-    currentPlayer = newPlayer;
-    localStorage.setItem('betting-app-player-name', currentPlayer.name);
-    initializeMainApp();
+    
+    signinBtn.disabled = false;
+    signinBtn.textContent = 'Sign In / Register';
 }
 
 function handleLogout() {
@@ -278,7 +226,7 @@ function handleLogout() {
     window.location.reload();
 }
 
-// --- EVENT HANDLERS from original file ---
+// --- EVENT HANDLERS ---
 function handleOptionSelect(selectedButton, optionText) {
     if (currentQuestion.correct_answer) return;
     document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
@@ -287,7 +235,6 @@ function handleOptionSelect(selectedButton, optionText) {
 }
 
 async function handlePlaceBet() {
-    // ... (This function is the same, no changes needed)
     if (!supabase) return showMessage('Database connection error.', true);
     const amount = parseInt(betAmountInput.value);
 
@@ -299,10 +246,7 @@ async function handlePlaceBet() {
     placeBetBtn.textContent = 'Placing...';
     
     const newPoints = currentPlayer.points - amount;
-    const { error: updateError } = await supabase
-        .from('players')
-        .update({ points: newPoints })
-        .eq('name', currentPlayer.name);
+    const { error: updateError } = await supabase.from('players').update({ points: newPoints }).eq('name', currentPlayer.name);
 
     if (updateError) {
         showMessage('Error updating points. Bet not placed.', true);
@@ -311,19 +255,11 @@ async function handlePlaceBet() {
         return;
     }
     
-    const { error: insertError } = await supabase
-        .from('bets')
-        .insert({
-            question_id: currentQuestion.id,
-            player_name: currentPlayer.name,
-            option: selectedOption,
-            amount: amount
-        });
+    const { error: insertError } = await supabase.from('bets').insert({ question_id: currentQuestion.id, player_name: currentPlayer.name, option: selectedOption, amount: amount });
 
     if (insertError) {
         await supabase.from('players').update({ points: currentPlayer.points }).eq('name', currentPlayer.name);
         showMessage('Failed to place bet. Your points have been refunded.', true);
-        console.error('Bet placement error:', insertError);
     } else {
         currentPlayer.points = newPoints;
         updatePlayerInfo();
@@ -351,17 +287,11 @@ async function initializeMainApp() {
 async function checkForSavedPlayer() {
     const savedPlayerName = localStorage.getItem('betting-app-player-name');
     if (savedPlayerName && supabase) {
-        let { data: player } = await supabase
-            .from('players')
-            .select('*')
-            .eq('name', savedPlayerName)
-            .single();
-        
+        let { data: player } = await supabase.from('players').select('*').eq('name', savedPlayerName).single();
         if (player) {
             currentPlayer = player;
             initializeMainApp();
         } else {
-            // Player was deleted from DB, so clear local storage
             localStorage.removeItem('betting-app-player-name');
             toggleAppView(false);
         }
@@ -373,15 +303,12 @@ async function checkForSavedPlayer() {
 // --- START THE APP ---
 document.addEventListener('DOMContentLoaded', () => {
     if (supabase) {
-        loginBtn.addEventListener('click', handleLogin);
-        registerBtn.addEventListener('click', handleRegister);
+        signinBtn.addEventListener('click', handleLoginOrRegister);
         logoutBtn.addEventListener('click', handleLogout);
         placeBetBtn.addEventListener('click', handlePlaceBet);
-        
         passwordInput.addEventListener('keyup', (event) => {
-            if (event.key === 'Enter') handleLogin();
+            if (event.key === 'Enter') handleLoginOrRegister();
         });
-
         checkForSavedPlayer();
     }
 });
