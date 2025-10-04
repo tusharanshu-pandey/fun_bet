@@ -8,60 +8,53 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-800 text-gray-100 font-sans flex items-center justify-center min-h-screen">
+<body class="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-gray-100 font-sans flex items-center justify-center min-h-screen p-4">
 
-    <div class="container mx-auto p-4 max-w-2xl w-full">
-
-        <!-- Login Section -->
-        <div id="login-section" class="bg-gray-900 p-8 rounded-xl shadow-2xl">
-             <div class="text-center">
-                <h1 class="text-3xl font-bold mb-2 text-sky-400">Welcome!</h1>
-                <p class="text-gray-400 mb-6">Login or create an account to join the game.</p>
-                <div class="space-y-4">
-                    <input type="text" id="name-input" class="login-input" placeholder="Enter your name">
-                    <input type="password" id="password-input-user" class="login-input" placeholder="Enter your password">
-                </div>
-                <div id="login-message-area" class="h-5 mt-4 text-red-400 text-sm"></div>
-                <div class="flex gap-4 mt-2">
-                    <button id="login-btn" class="flex-1 bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 rounded-md transition-colors duration-200">Login</button>
-                    <button id="register-btn" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-md transition-colors duration-200">Register</button>
-                </div>
+    <!-- Login Section -->
+    <div id="login-section" class="login-card">
+         <div class="text-center">
+            <h1 class="text-3xl font-bold mb-2 text-white">Welcome</h1>
+            <p class="text-gray-300 mb-8">Sign in or create an account to continue.</p>
+            <div class="space-y-4">
+                <input type="text" id="name-input" class="login-input" placeholder="Enter your name">
+                <input type="password" id="password-input-user" class="login-input" placeholder="Enter your password">
             </div>
+            <div id="login-message-area" class="h-5 mt-4 text-red-400 text-sm"></div>
+            <button id="signin-btn" class="w-full mt-4 signin-btn">Sign In / Register</button>
         </div>
+    </div>
 
-        <!-- Main App Section -->
-        <div id="app-section" class="hidden">
-            <!-- Header -->
-            <header class="bg-gray-900 p-4 rounded-xl shadow-lg flex justify-between items-center mb-6">
-                <div id="user-info">
-                    <h2 class="font-bold text-lg text-sky-400" id="player-name">Player</h2>
-                    <p class="text-sm text-gray-300">Points: <span id="player-points" class="font-semibold">0</span></p>
-                </div>
-                <button id="logout-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md text-sm transition-colors">Logout</button>
-            </header>
+    <!-- Main App Section -->
+    <div id="app-section" class="hidden container mx-auto p-4 max-w-2xl w-full">
+        <!-- Header -->
+        <header class="bg-gray-900 p-4 rounded-xl shadow-lg flex justify-between items-center mb-6">
+            <div id="user-info">
+                <h2 class="font-bold text-lg text-sky-400" id="player-name">Player</h2>
+                <p class="text-sm text-gray-300">Points: <span id="player-points" class="font-semibold">0</span></p>
+            </div>
+            <button id="logout-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md text-sm transition-colors">Logout</button>
+        </header>
 
-            <!-- Question Card -->
-            <main id="question-card" class="bg-gray-900 p-6 rounded-xl shadow-lg mb-6">
-                <h2 id="question-text" class="text-xl font-semibold mb-5 text-center">Loading question...</h2>
-                <div id="options-container" class="space-y-3 mb-5">
-                    <!-- Options will be added here -->
-                </div>
-                <div id="betting-controls" class="flex flex-col sm:flex-row gap-3 items-center">
-                    <input type="number" id="bet-amount" placeholder="Points to bet" class="bet-input flex-grow">
-                    <button id="place-bet-btn" class="place-bet-btn w-full sm:w-auto">Place Bet</button>
-                </div>
-                <p id="message-area" class="text-center mt-4 h-5"></p>
-            </main>
+        <!-- Question Card -->
+        <main id="question-card" class="bg-gray-900 p-6 rounded-xl shadow-lg mb-6">
+            <h2 id="question-text" class="text-xl font-semibold mb-5 text-center">Loading question...</h2>
+            <div id="options-container" class="space-y-3 mb-5">
+                <!-- Options will be added here -->
+            </div>
+            <div id="betting-controls" class="flex flex-col sm:flex-row gap-3 items-center">
+                <input type="number" id="bet-amount" placeholder="Points to bet" class="bet-input flex-grow">
+                <button id="place-bet-btn" class="place-bet-btn w-full sm:w-auto">Place Bet</button>
+            </div>
+            <p id="message-area" class="text-center mt-4 h-5"></p>
+        </main>
 
-            <!-- Bet History -->
-            <footer class="bg-gray-900 p-6 rounded-xl shadow-lg">
-                <h3 class="text-lg font-semibold mb-4 border-b border-gray-700 pb-2">My Bet History (This Question)</h3>
-                <div id="history-list" class="space-y-2 max-h-40 overflow-y-auto">
-                    <!-- History items will be added here -->
-                </div>
-            </footer>
-        </div>
-
+        <!-- Bet History -->
+        <footer class="bg-gray-900 p-6 rounded-xl shadow-lg">
+            <h3 class="text-lg font-semibold mb-4 border-b border-gray-700 pb-2">My Bet History (This Question)</h3>
+            <div id="history-list" class="space-y-2 max-h-40 overflow-y-auto">
+                <!-- History items will be added here -->
+            </div>
+        </footer>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
