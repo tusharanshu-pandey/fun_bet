@@ -12,6 +12,7 @@ const signinBtn = document.getElementById('signin-btn');
 const loginError = document.getElementById('login-error');
 const playerNameDisplay = document.getElementById('player-name');
 const playerPointsDisplay = document.getElementById('player-points');
+const logoutBtn = document.getElementById('logout-btn');
 const questionText = document.getElementById('question-text');
 const optionsContainer = document.getElementById('options-container');
 const betAmountInput = document.getElementById('bet-amount');
@@ -93,6 +94,13 @@ function showAppView(user) {
     // Set up real-time subscriptions
     subscribeToBets();
     subscribeToPlayers();
+}
+
+function handleLogout() {
+    localStorage.removeItem('betting_app_player');
+    currentPlayer = null;
+    // Reloading the page is the simplest and cleanest way to reset the app's state
+    location.reload();
 }
 
 // Fetch the current active question from the database
@@ -301,7 +309,7 @@ function subscribeToBets() {
     supabase
         .channel('public:bets')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bets' }, payload => {
-            if (payload.new.question_id === activeQuestion.id) {
+            if (activeQuestion && payload.new.question_id === activeQuestion.id) {
                 // If the new bet is for the current question, re-render question for odds and history
                 renderQuestion();
                 renderHistory();
@@ -314,7 +322,6 @@ function subscribeToPlayers() {
     supabase
         .channel('public:players')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'players' }, payload => {
-            console.log('Player data changed, refreshing leaderboard...');
             // Check if the change affects the current player
             if (currentPlayer && payload.new.name === currentPlayer.name) {
                 currentPlayer.points = payload.new.points;
@@ -339,4 +346,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
 signinBtn.addEventListener('click', handleSignIn);
 placeBetBtn.addEventListener('click', placeBet);
+logoutBtn.addEventListener('click', handleLogout);
 
