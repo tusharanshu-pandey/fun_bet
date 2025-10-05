@@ -3,74 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Betting on life</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Live Odds Betting</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script> 
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
-<body class="flex items-center justify-center min-h-screen text-gray-300">
+<body class="bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen p-4">
 
     <!-- Login View -->
-    <div id="login-view" class="w-full">
-        <div class="login-card mx-auto">
-            <div class="text-center mb-8">
-                <h1 class="text-3xl font-bold text-white">Welcome</h1>
-                <p class="text-gray-400 mt-2">Sign in or create an account to continue.</p>
-            </div>
+    <div id="login-view" class="w-full max-w-md">
+        <div class="login-card">
+            <h1 class="text-3xl font-bold mb-2">Welcome</h1>
+            <p class="text-gray-400 mb-8">Sign in or create an account to continue.</p>
             <div class="space-y-6">
-                <input type="text" id="name" class="login-input" placeholder="Enter your name">
-                <input type="password" id="password" class="login-input" placeholder="Enter your password">
-                <button id="signin-btn" class="w-full signin-btn">Let's Go</button>
+                <input type="text" id="name" placeholder="Enter your name" class="input-field">
+                <input type="password" id="password" placeholder="Enter your password" class="input-field">
+                <button id="signin-btn" class="btn">Sign In / Register</button>
             </div>
-             <p id="login-error" class="text-red-400 text-center mt-4 h-5"></p>
+            <p id="login-error" class="text-red-500 mt-4 text-center h-5"></p>
         </div>
     </div>
 
     <!-- Main App View -->
-    <div id="app-view" class="hidden w-full max-w-4xl mx-auto p-4 md:p-8">
-        <header class="flex justify-between items-center mb-8">
-            <div>
-                <p class="text-gray-400">Player</p>
-                <h1 id="player-name" class="text-2xl font-bold text-white"></h1>
-            </div>
-            <div class="flex items-center gap-4">
-                <div class="text-right">
-                    <p class="text-gray-400">Points</p>
-                    <p id="player-points" class="text-2xl font-bold text-white"></p>
+    <div id="app-view" class="hidden w-full max-w-5xl mx-auto">
+        <header>
+            <div class="player-info">
+                <div>
+                    <div class="label">Player</div>
+                    <div id="player-name" class="text-2xl font-bold"></div>
                 </div>
-                <button id="logout-btn" class="logout-btn">Logout</button>
+                <div>
+                    <div class="label">Points</div>
+                    <div id="player-points" class="text-2xl font-bold"></div>
+                </div>
             </div>
+            <button id="logout-btn">Logout</button>
         </header>
 
-        <main id="question-card" class="bg-gray-800 rounded-2xl p-6 shadow-lg">
-            <h2 id="question-text" class="text-2xl font-semibold text-white mb-6">Loading question...</h2>
-            <div id="options-container" class="space-y-4">
-                <!-- Betting options are dynamically loaded here -->
+        <main class="app-grid mt-8">
+            <!-- Questions will be dynamically inserted here -->
+            <div id="questions-container" class="space-y-8">
+                <!-- Example of a dynamically generated question card -->
+                <!-- 
+                <div class="card question-card" data-question-id="1">
+                    <h2 class="question-title">Who will win the next match?</h2>
+                    <div class="options-container space-y-3"></div>
+                    <div class="betting-controls mt-6 flex gap-3">
+                        <input type="number" class="input-field bet-amount" placeholder="Bet amount">
+                        <button class="btn place-bet-btn" disabled>Place Bet</button>
+                    </div>
+                    <p class="bet-error text-red-500 mt-2 h-5"></p>
+                    <div class="history-section mt-6">
+                        <h3 class="text-lg font-semibold mb-3 border-b border-gray-700 pb-2">My Bets on this Question</h3>
+                        <ul class="history-list space-y-2">
+                            <li>No bets yet.</li>
+                        </ul>
+                    </div>
+                </div> 
+                -->
             </div>
-            <div id="betting-controls" class="flex flex-col sm:flex-row gap-4 mt-6 pt-6 border-t border-gray-700">
-                <input type="number" id="bet-amount" class="bet-input w-full sm:w-1/2" placeholder="Enter points to bet...">
-                <button id="place-bet-btn" class="place-bet-btn w-full sm:w-1/2" disabled>Place Bet</button>
-            </div>
-            <p id="bet-error" class="text-red-400 text-center mt-4 h-5"></p>
-        </main>
-
-        <div class="main-content">
-            <!-- Bet History -->
-            <div id="history-section">
-                <h3 class="text-xl font-bold text-white mb-4">My Bet History</h3>
-                <div id="history-list" class="bg-gray-800 rounded-xl p-4 h-64 overflow-y-auto space-y-3">
-                    <!-- Bet history will be rendered here -->
+            
+            <!-- Leaderboard Sidebar -->
+            <aside class="sidebar">
+                <div class="card">
+                    <h2>Top Players</h2>
+                    <ul id="leaderboard-list">
+                        <li>Loading...</li>
+                    </ul>
                 </div>
-            </div>
-            <!-- Leaderboard -->
-            <div id="leaderboard-section">
-                <h3 class="text-xl font-bold text-white mb-4">Top Players</h3>
-                <ol id="leaderboard-list" class="bg-gray-800 rounded-xl p-4 h-64 overflow-y-auto space-y-3">
-                    <!-- Leaderboard will be rendered here -->
-                </ol>
-            </div>
-        </div>
+            </aside>
+        </main>
     </div>
 
     <script src="script.js"></script>
