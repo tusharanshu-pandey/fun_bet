@@ -64,6 +64,21 @@ body {
 
 
 /* Main App Styling */
+.logout-btn {
+    background-color: #c53030; /* red-700 */
+    color: white;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.logout-btn:hover {
+    background-color: #9b2c2c; /* red-800 */
+}
+
 .option-btn {
     width: 100%;
     padding: 1rem;
