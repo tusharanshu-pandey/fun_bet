@@ -153,7 +153,7 @@ header {
 
 .app-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 2fr 1fr; /* Main content gets more space */
     gap: 2rem;
 }
 
@@ -279,5 +279,18 @@ input[type=number]::-webkit-outer-spin-button {
 /* For Firefox */
 input[type=number] {
   -moz-appearance: textfield;
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 768px) {
+    .app-grid {
+        grid-template-columns: 1fr; /* Stack into a single column on smaller screens */
+    }
+
+    header, .player-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
 }
 
