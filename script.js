@@ -118,6 +118,7 @@ async function fetchActiveQuestion() {
     } else {
         activeQuestion = data;
         renderQuestion();
+        renderHistory(); // Also render history when a question loads
     }
 }
 
@@ -245,6 +246,9 @@ async function placeBet() {
     document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
     selectedOption = null;
     placeBetBtn.disabled = true;
+
+    // Manually call renderHistory to instantly update the list for the current user.
+    renderHistory();
 }
 
 
@@ -259,7 +263,8 @@ async function renderHistory() {
         .from('bets')
         .select('*')
         .eq('player_name', currentPlayer.name)
-        .eq('question_id', activeQuestion.id);
+        .eq('question_id', activeQuestion.id)
+        .order('created_at', { ascending: false }); // Show newest bets first
     
     if (error) return;
 
@@ -309,7 +314,7 @@ async function renderLeaderboard() {
             <span class="leaderboard-points">${player.points} pts</span>
         `;
         leaderboardList.appendChild(li);
-    });
+});
 }
 
 // Set up a real-time subscription to the 'bets' table
@@ -343,14 +348,35 @@ function subscribeToPlayers() {
 
 // --- EVENT LISTENERS & INITIALIZATION ---
 
-// Check for a logged-in user on page load
-document.addEventListener('DOMContentLoaded', () => {
-    const savedPlayer = localStorage.getItem('betting_app_player');
-    if (savedPlayer) {
-        currentPlayer = JSON.parse(savedPlayer);
+// New function to get the latest player data from the DB
+async function refreshPlayerData(playerName) {
+    const { data, error } = await supabase
+        .from('players')
+        .select('*')
+        .eq('name', playerName)
+        .single();
+    
+    if (error || !data) {
+        // If player is not found in DB (e.g., deleted), log them out.
+        handleLogout();
+    } else {
+        // Update state and UI with fresh data
+        currentPlayer = data;
+        localStorage.setItem('betting_app_player', JSON.stringify(currentPlayer));
         showAppView(currentPlayer);
     }
+}
+
+// Check for a logged-in user on page load
+document.addEventListener('DOMContentLoaded', () => {
+    const savedPlayerJSON = localStorage.getItem('betting_app_player');
+    if (savedPlayerJSON) {
+        const savedPlayer = JSON.parse(savedPlayerJSON);
+        // Don't just trust localStorage. Re-fetch the player's latest data to ensure it's fresh.
+        refreshPlayerData(savedPlayer.name);
+    }
 });
+
 
 signinBtn.addEventListener('click', handleSignIn);
 placeBetBtn.addEventListener('click', placeBet);
