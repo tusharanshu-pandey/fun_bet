@@ -4,56 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Betting App - Admin Panel</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="admin.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-gray-900 text-white font-sans">
-
-    <!-- Password Overlay -->
-    <div id="password-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-95 flex items-center justify-center z-50">
-        <div class="bg-gray-800 p-8 rounded-lg shadow-xl text-center">
-            <h2 class="text-2xl font-bold mb-4">Admin Access</h2>
-            <p class="text-gray-400 mb-6">Enter the service role key to continue.</p>
-            <input type="password" id="password-input" class="w-full bg-gray-700 text-white p-3 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-sky-500" placeholder="Paste Supabase Service Role Key">
-            <button id="password-submit" class="w-full mt-4 bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 rounded-md transition-colors">Login</button>
+<body>
+    <!-- Login View -->
+    <div id="login-view">
+        <div class="login-card">
+            <h1>Admin Access</h1>
+            <p>Enter your password to manage the application.</p>
+            <input type="password" id="admin-password" placeholder="Enter password...">
+            <button id="login-btn">Login</button>
+            <p id="admin-login-error"></p>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div id="admin-content" class="hidden max-w-4xl mx-auto p-4 md:p-8">
-        <header class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-bold text-sky-400">Admin Panel</h1>
-            <button id="logout-btn-admin" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md text-sm">Logout</button>
+    <!-- Main Admin View -->
+    <div id="admin-view" class="hidden">
+        <header>
+            <h1>Admin Panel</h1>
+            <button id="logout-btn">Logout</button>
         </header>
 
-        <!-- Create New Question -->
-        <section class="bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
-            <h2 class="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">Create New Question</h2>
-            <div class="space-y-4">
-                <div>
-                    <label for="new-question-text" class="block text-sm font-medium text-gray-300 mb-1">Question Text</label>
-                    <input type="text" id="new-question-text" class="admin-input" placeholder="e.g., Who will win the next match?">
+        <main class="admin-grid">
+            <div class="card">
+                <h2>Create New Question</h2>
+                <div class="form-group">
+                    <label for="question-text">Question Text</label>
+                    <input type="text" id="question-text" placeholder="e.g., Who will win the next match?">
                 </div>
-                <div>
-                    <label for="new-question-options" class="block text-sm font-medium text-gray-300 mb-1">Options (comma-separated)</label>
-                    <input type="text" id="new-question-options" class="admin-input" placeholder="e.g., Team A, Team B, Draw">
+                <div class="form-group">
+                    <label for="question-options">Options (comma-separated)</label>
+                    <input type="text" id="question-options" placeholder="e.g., Team A, Team B, Draw">
                 </div>
-                <button id="create-question-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-md transition-colors">Create Question</button>
+                <button id="create-question-btn">Create Question</button>
+                <p id="create-error"></p>
             </div>
-             <p id="admin-message" class="text-center mt-4 h-5"></p>
-        </section>
 
-        <!-- Settle Active Questions -->
-        <section class="bg-gray-800 p-6 rounded-lg shadow-lg">
-            <h2 class="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">Settle Active Questions</h2>
-            <div id="active-questions-container" class="space-y-6">
-                <!-- Active questions will be loaded here by JavaScript -->
-                <p class="text-gray-400">Loading active questions...</p>
+            <div class="card">
+                <h2>Settle Active Questions</h2>
+                <div id="settle-questions-container">
+                    <!-- Active questions will be dynamically inserted here -->
+                    <p class="loading-text">Loading active questions...</p>
+                </div>
             </div>
-        </section>
+        </main>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="admin.js"></script>
 </body>
 </html>
+
