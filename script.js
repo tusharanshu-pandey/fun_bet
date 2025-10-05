@@ -121,12 +121,13 @@ async function fetchActiveQuestion() {
     }
 }
 
-// Display the question and betting options
+// Display the question and betting options with multiplier odds
 async function renderQuestion() {
     questionText.textContent = activeQuestion.question_text;
     optionsContainer.innerHTML = ''; // Clear previous options
+    document.getElementById('betting-controls').classList.remove('hidden');
 
-    // Get total points bet on each option to calculate odds
+    // Get all bets for the current question
     const { data: bets, error } = await supabase
         .from('bets')
         .select('option, amount')
@@ -137,6 +138,7 @@ async function renderQuestion() {
         return;
     }
 
+    // Calculate the total points bet on each option
     const pointsPerOption = activeQuestion.options.reduce((acc, option) => {
         acc[option] = 0;
         return acc;
@@ -146,24 +148,30 @@ async function renderQuestion() {
     bets.forEach(bet => {
         if (pointsPerOption.hasOwnProperty(bet.option)) {
             pointsPerOption[bet.option] += bet.amount;
-            totalPot += bet.amount;
         }
+        totalPot += bet.amount;
     });
 
     // Create and display option buttons
     activeQuestion.options.forEach(option => {
         const optionPoints = pointsPerOption[option];
-        const percentage = totalPot > 0 ? ((optionPoints / totalPot) * 100).toFixed(0) : 0;
+        let multiplierText;
 
+        if (totalPot === 0 || optionPoints === 0) {
+            // If no bets on this option or no bets at all, multiplier is undefined
+             multiplierText = '—x';
+        } else {
+            // Calculate payout multiplier: (Total Pot / Points on this option)
+            const multiplier = totalPot / optionPoints;
+            multiplierText = `${multiplier.toFixed(2)}x`;
+        }
+        
         const button = document.createElement('button');
         button.className = 'option-btn';
         button.innerHTML = `
             <div class="flex justify-between items-center">
                 <span class="option-text">${option}</span>
-                <span class="text-gray-400 font-semibold">${percentage}%</span>
-            </div>
-            <div class="progress-bar-bg">
-                <div class="progress-bar" style="width: ${percentage}%"></div>
+                <span class="text-xl font-bold text-green-400">${multiplierText}</span>
             </div>
         `;
         button.onclick = () => selectOption(button, option);
@@ -237,15 +245,15 @@ async function placeBet() {
     document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
     selectedOption = null;
     placeBetBtn.disabled = true;
-
-    // Refresh question to show updated odds
-    renderQuestion();
 }
 
 
 // Fetch and display the current player's bet history for the active question
 async function renderHistory() {
-    if (!activeQuestion) return;
+    if (!currentPlayer || !activeQuestion) {
+        historyList.innerHTML = '<p class="text-gray-500 text-center">No active question to show history for.</p>';
+        return;
+    }
 
     const { data, error } = await supabase
         .from('bets')
