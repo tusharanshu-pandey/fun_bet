@@ -23,6 +23,18 @@ let playerSelections = {}; // Tracks selected option for each question: { questi
 
 // --- FUNCTIONS ---
 
+// ADD THIS NEW FUNCTION
+async function hashPassword(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer)); // convert buffer to byte array
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join(''); // convert bytes to hex string
+    return hashHex;
+}
+
+// ... rest of your functions
+// REPLACE the old handleSignIn function with this one
 async function handleSignIn() {
     const name = nameInput.value.trim();
     const password = passwordInput.value.trim();
@@ -32,6 +44,11 @@ async function handleSignIn() {
         loginError.textContent = 'Name and password cannot be empty.';
         return;
     }
+
+    // --- MODIFICATION START ---
+    // 1. Hash the user's password input before using it
+    const hashedPassword = await hashPassword(password);
+    // --- MODIFICATION END ---
 
     const { data: existingPlayer, error: fetchError } = await supabase
         .from('players')
@@ -45,7 +62,10 @@ async function handleSignIn() {
     }
 
     if (existingPlayer) {
-        if (existingPlayer.password === password) {
+        // --- MODIFICATION START ---
+        // 2. Compare the hashed input with the hashed password in the database
+        if (existingPlayer.password === hashedPassword) {
+        // --- MODIFICATION END ---
             await refreshPlayerData(existingPlayer.name);
         } else {
             loginError.textContent = 'Incorrect password.';
@@ -53,7 +73,10 @@ async function handleSignIn() {
     } else {
         const { data: newPlayer, error: insertError } = await supabase
             .from('players')
-            .insert({ name, password, points: 1000 })
+            // --- MODIFICATION START ---
+            // 3. Insert the hashed password for the new user, not the plaintext one
+            .insert({ name, password: hashedPassword, points: 1000 })
+            // --- MODIFICATION END ---
             .select()
             .single();
         
